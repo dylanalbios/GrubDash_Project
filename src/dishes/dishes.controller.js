@@ -26,8 +26,25 @@ function list(req, res) {
     }
 };
 
-// verify dish
+// verify dish exists
+function dishExists(req, res, next) {
+    const { dishId } = req.params;
+    const foundDish = dishes.find((dish) => dish.id === dishId);
+    if (foundDish) {
+        res.locals.dish = foundDish;
+        return next();
+    }
+    return res.status(404).json({ error: `Dish id not found: ${dishId}` });
+};
+
+// read dishes
+function read(req, res, next) {
+    res.json({ data: res.locals.dish });
+};
+
+
 
 module.exports ={
     list,
+    read: [dishExists, read],
 }
