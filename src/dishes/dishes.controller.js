@@ -42,9 +42,49 @@ function read(req, res, next) {
     res.json({ data: res.locals.dish });
 };
 
+// has all body data required
+function bodyDataHas(propertyName) {
+    return function (req, res, next) {
+        const { data = {} } = req.body;
+        if (data[propertyName]) {
+            return next();
+        }
+        next({
+            status: 400,
+            message: `Must include a ${propertyName}`
+        });
+    };
+};
 
+// verify price is a number and not less than zero
+function verifyPrice(req, res, next) {
+    const { data } = req.body;
+
+    if (typeof data.price !== "number" || data.price < 0) {
+        return next({
+            status: 400,
+            message: "price",
+        });
+    }
+    next();
+};
 
 module.exports ={
+    create: [
+        bodyDataHas("name"),
+        bodyDataHas("description"),
+        bodyDataHas("price"),
+        bodyDataHas("image_url"),
+        verifyPrice,
+    ],
     list,
     read: [dishExists, read],
+    update: [
+        dishExists,
+        bodyDataHas("name"),
+        bodyDataHas("description"),
+        bodyDataHas("price"),
+        bodyDataHas("image_url"),
+        verifyPrice,
+    ],
 }
