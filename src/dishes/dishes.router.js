@@ -6,7 +6,7 @@ const methodNotAllowed = require("../errors/methodNotAllowed");
 
 router
     .route("/")
-    .get()
+    .get(controller.getAllDishes)
     .post()
     .put()
     .delete()
@@ -14,7 +14,7 @@ router
 
 router
     .route("/:dishId")
-    .get()
+    .get(controller.getOneDish)
     .post()
     .put()
     .delete()
