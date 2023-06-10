@@ -42,9 +42,31 @@ function read(req, res, next) {
     res.json({ data: res.locals.order });
 };
 
+// delete an order
+function destroy(req, res) {
+    const { orderId } = req.params;
+    const index = orders.findIndex((order) => order.id === orderId);
+  
+    if (index !== -1) {
+        const order = orders[index];
+        if (order.status !== "pending") {
+            return res.status(400).json({
+                error: `Order with id ${orderId} cannot be deleted as it is not in pending status.`,
+            });
+        }
+        orders.splice(index, 1);
+        return res.sendStatus(204);
+    }
+  
+    return res
+        .status(404)
+        .json({ error: `Order id not found: ${orderId}` });
+}
+  
 
 
 module.exports ={
     list,
     read: [orderExists, read],
+    delete: [orderExists, destroy]
 }
