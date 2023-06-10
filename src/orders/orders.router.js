@@ -9,7 +9,6 @@ router
     .get(controller.list)
     .post()
     .put()
-    .delete()
     .all(methodNotAllowed);
 
 router
@@ -17,7 +16,7 @@ router
     .get(controller.read)
     .post()
     .put()
-    .delete()
+    .delete(controller.delete)
     .all(methodNotAllowed);
 
 
