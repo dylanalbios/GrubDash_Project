@@ -9,6 +9,20 @@ const nextId = require("../utils/nextId");
 // TODO: Implement the /dishes handlers needed to make the tests pass
 
 
+// create new dish
+function create(req, res) {
+    const { data: { name, description, price, image_url } = {} } = req.body;
+    const newDish = {
+        id: nextId(),
+        name: name,
+        description: description,
+        price: price,
+        image_url: image_url,
+    };
+    dishes.push(newDish);
+    res.status(201).json({ data: newDish });
+};
+
 // list all dishes or filter id
 function list(req, res) {
     const { dishId } = req.params;
@@ -76,6 +90,7 @@ module.exports ={
         bodyDataHas("price"),
         bodyDataHas("image_url"),
         verifyPrice,
+        create,
     ],
     list,
     read: [dishExists, read],
