@@ -42,6 +42,20 @@ function read(req, res, next) {
     res.json({ data: res.locals.order });
 };
 
+// has all body data required
+function bodyDataHas(propertyName) {
+    return function (req, res, next) {
+        const { data = {} } = req.body;
+        if (data[propertyName]) {
+            return next();
+        }
+        next({
+            status: 400,
+            message: `Must include a ${propertyName}`
+        });
+    };
+};
+
 // delete an order
 function destroy(req, res) {
     const { orderId } = req.params;
@@ -61,12 +75,25 @@ function destroy(req, res) {
     return res
         .status(404)
         .json({ error: `Order id not found: ${orderId}` });
-}
+};
   
 
 
 module.exports ={
+    create: [
+        bodyDataHas("deliverTo"),
+        bodyDataHas("mobileNumber"),
+        bodyDataHas("status"),
+        bodyDataHas("dishes"),
+    ],
     list,
     read: [orderExists, read],
-    delete: [orderExists, destroy]
+    update: [
+        orderExists,
+        bodyDataHas("deliverTo"),
+        bodyDataHas("mobileNumber"),
+        bodyDataHas("status"),
+        bodyDataHas("dishes"),
+    ],
+    delete: [orderExists, destroy],
 }
