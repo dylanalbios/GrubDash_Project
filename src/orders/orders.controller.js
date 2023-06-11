@@ -77,6 +77,35 @@ function destroy(req, res) {
         .json({ error: `Order id not found: ${orderId}` });
 };
   
+// check validity of dishes
+function validateDishes(req, res, next) {
+    const { data = {} } = req.body;
+    const { dishes = [] } = data;
+
+    if (!Array.isArray(dishes) || dishes.length === 0) {
+        return res.status(400).json({
+            error: "Dishes must be an array and have at least 1 dish",
+        });
+    }
+
+    for (const dish of dishes) {
+        if (!dish.hasOwnProperty("quantity")) {
+            return res.status(400).json({
+                error: "Dish 1 must have a quantity",
+            });
+        }
+
+        if (dish.quantity === 0) {
+            return res.status(400).json({
+                error: "Dish must have a quantity greater than 0"
+            });
+        }
+    }
+
+    next();
+};
+
+
 
 
 module.exports ={
@@ -85,6 +114,7 @@ module.exports ={
         bodyDataHas("mobileNumber"),
         bodyDataHas("status"),
         bodyDataHas("dishes"),
+        validateDishes,
     ],
     list,
     read: [orderExists, read],
@@ -94,6 +124,7 @@ module.exports ={
         bodyDataHas("mobileNumber"),
         bodyDataHas("status"),
         bodyDataHas("dishes"),
+        validateDishes,
     ],
     delete: [orderExists, destroy],
 }
