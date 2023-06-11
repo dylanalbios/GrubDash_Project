@@ -79,39 +79,39 @@ function bodyDataHas(propertyName) {
         });
     };
 };
-
   
 // check validity of dishes
 function validateDishes(req, res, next) {
     const { data = {} } = req.body;
     const { dishes = [] } = data;
-
+  
     if (!Array.isArray(dishes) || dishes.length === 0) {
+      return next({
+        status: 400,
+        message: "Dishes must be an array and have at least 1 dish",
+      });
+    }
+  
+    for (let i = 0; i < dishes.length; i++) {
+      const dish = dishes[i];
+      if (!dish.hasOwnProperty("quantity")) {
         return next({
-            status: 400,
-            message: "Dishes must be an array and have at least 1 dish",
+          status: 400,
+          message: `Dish ${i} must have a quantity that is an integer greater than 0`,
         });
+      }
+  
+      const quantity = dish.quantity;
+      if (!Number.isInteger(quantity) || quantity <= 0) {
+        return next({
+          status: 400,
+          message: `Dish ${i} must have a quantity that is an integer greater than 0`,
+        });
+      }
     }
-
-    for (const dish of dishes) {
-        if (!dish.hasOwnProperty("quantity")) {
-            return next({
-                status: 400,
-                message: "Dish must have quantity of at least 1",
-            });
-        }
-
-        const quantity = dish.quantity;
-        if (!Number.isInteger(quantity) || quantity <= 0) {
-            return next({
-                status: 400,
-                message: `Dish must have a quantity greater than 0. Receieved ${quantity}`
-            });
-        }
-    }
-
+  
     next();
-};
+  };
 
 // update
 function update(req, res) {
