@@ -7,15 +7,14 @@ const methodNotAllowed = require("../errors/methodNotAllowed");
 router
     .route("/")
     .get(controller.list)
-    .post()
-    .put()
+    .post(controller.create)
+    .put(controller.update)
     .all(methodNotAllowed);
 
 router
     .route("/:orderId")
     .get(controller.read)
-    .post()
-    .put()
+    .put(controller.update)
     .delete(controller.delete)
     .all(methodNotAllowed);
 
