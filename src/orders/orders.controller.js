@@ -26,6 +26,20 @@ function list(req, res) {
     }
 };
 
+// create
+function create(req, res) {
+    const { data: { id, deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+    const newOrder = {
+        id: nextId(),
+        deliverTo: deliverTo,
+        mobileNumber: mobileNumber,
+        status: status,
+        dishes: dishes,
+    };
+    orders.push(newOrder);
+    res.status(201).json({ data: newOrder });
+};
+
 // verify order exists
 function orderExists(req, res, next) {
     const { orderId } = req.params;
@@ -59,12 +73,65 @@ function bodyDataHas(propertyName) {
             }
             return next();
         }
-        next({
+        return next({
             status: 400,
             message: `Must include a ${propertyName}`,
         });
     };
 };
+
+  
+// check validity of dishes
+function validateDishes(req, res, next) {
+    const { data = {} } = req.body;
+    const { dishes = [] } = data;
+
+    if (!Array.isArray(dishes) || dishes.length === 0) {
+        return next({
+            status: 400,
+            message: "Dishes must be an array and have at least 1 dish",
+        });
+    }
+
+    for (const dish of dishes) {
+        if (!dish.hasOwnProperty("quantity")) {
+            return next({
+                status: 400,
+                message: "Dish must have quantity of at least 1",
+            });
+        }
+
+        const quantity = dish.quantity;
+        if (!Number.isInteger(quantity) || quantity <= 0) {
+            return next({
+                status: 400,
+                message: `Dish must have a quantity greater than 0. Receieved ${quantity}`
+            });
+        }
+    }
+
+    next();
+};
+
+// update
+function update(req, res) {
+    const order = res.locals.order;
+    const { data: { id, deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+
+    if (id && id !== order.id) {
+        return res.status(400).json({
+            error: `The order id in the request body must match the orderId in the URL. Received ${id}`
+        });
+    }
+
+    order.deliverTo = deliverTo;
+    order.mobileNumber = mobileNumber;
+    order.status = status;
+    order.dishes = dishes;
+
+    res.json({ data: order });
+};
+
 
 // delete an order
 function destroy(req, res) {
@@ -86,35 +153,6 @@ function destroy(req, res) {
         .status(404)
         .json({ error: `Order id not found: ${orderId}` });
 };
-  
-// check validity of dishes
-function validateDishes(req, res, next) {
-    const { data = {} } = req.body;
-    const { dishes = [] } = data;
-
-    if (!Array.isArray(dishes) || dishes.length === 0) {
-        return res.status(400).json({
-            error: "Dishes must be an array and have at least 1 dish",
-        });
-    }
-
-    for (const dish of dishes) {
-        if (!dish.hasOwnProperty("quantity")) {
-            return res.status(400).json({
-                error: "Dish 1 must have a quantity",
-            });
-        }
-
-        if (dish.quantity === 0) {
-            return res.status(400).json({
-                error: "Dish must have a quantity greater than 0"
-            });
-        }
-    }
-
-    next();
-};
-
 
 
 
@@ -122,9 +160,9 @@ module.exports ={
     create: [
         bodyDataHas("deliverTo"),
         bodyDataHas("mobileNumber"),
-        bodyDataHas("status"),
         bodyDataHas("dishes"),
         validateDishes,
+        create,
     ],
     list,
     read: [orderExists, read],
@@ -135,6 +173,7 @@ module.exports ={
         bodyDataHas("status"),
         bodyDataHas("dishes"),
         validateDishes,
+        update,
     ],
     delete: [orderExists, destroy],
 }
