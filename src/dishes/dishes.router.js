@@ -13,7 +13,6 @@ router
 router
     .route("/:dishId")
     .get(controller.read)
-    .post(controller.create)
     .put(controller.update)
     .all(methodNotAllowed);
 
