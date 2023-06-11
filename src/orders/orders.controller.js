@@ -47,11 +47,21 @@ function bodyDataHas(propertyName) {
     return function (req, res, next) {
         const { data = {} } = req.body;
         if (data[propertyName]) {
+            if (propertyName === "status") {
+                const validStatuses = ["pending", "preparing", "out-for-delivery", "delivered"];
+                const status = data[propertyName];
+                if (!validStatuses.includes(status)) {
+                    return next({
+                        status: 400,
+                        message: `Invalid status: ${status}`,
+                    });
+                }
+            }
             return next();
         }
         next({
             status: 400,
-            message: `Must include a ${propertyName}`
+            message: `Must include a ${propertyName}`,
         });
     };
 };
