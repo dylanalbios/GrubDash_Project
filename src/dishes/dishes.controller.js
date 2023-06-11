@@ -71,7 +71,7 @@ function bodyDataHas(propertyName) {
 };
 
 // verify price is a number and not less than zero
-function verifyPrice(req, res, next) {
+function priceIsValid(req, res, next) {
     const { data } = req.body;
 
     if (typeof data.price !== "number" || data.price < 0) {
@@ -83,23 +83,60 @@ function verifyPrice(req, res, next) {
     next();
 };
 
+// update
+function update(req, res) {
+    const dish = res.locals.dish;
+    const { data: { id, name, description, price, image_url } = {} } = req.body;
+
+    if (id && id !== dish.id) {
+        return res.status(400).json({
+            error: "The dish ID in the request body must match the dishId in the URL.",
+        });
+    }
+
+    dish.name = name;
+    dish.description = description;
+    dish.price = price;
+    dish.image_url = image_url;
+
+    res.json({ data: dish });
+};
+
+// validate ID
+function validateId(req, res, next) {
+    const { data } = req.body;
+    const { dishId } = req.params;
+
+    if (data.id && data.id !== dishId) {
+        return res.status(400).json({
+            error: `The dish ID in the request body must match the id in the URL. Received: ${data.id}`,
+        });
+    }
+
+    data.id = dishId;
+
+    next();
+};
+
 module.exports ={
     create: [
         bodyDataHas("name"),
         bodyDataHas("description"),
         bodyDataHas("price"),
         bodyDataHas("image_url"),
-        verifyPrice,
+        priceIsValid,
         create,
     ],
     list,
     read: [dishExists, read],
     update: [
         dishExists,
+        validateId,
         bodyDataHas("name"),
         bodyDataHas("description"),
         bodyDataHas("price"),
         bodyDataHas("image_url"),
-        verifyPrice,
+        priceIsValid,
+        update,
     ],
 }
